@@ -58,3 +58,45 @@ Configuration is done through **environment variables** prefixed with `INFRACT_`
 * `INFRACT_VIIPER_ADDRESS`: VIIPER server address. Defaults to `localhost`.
 * `INFRACT_VIIPER_PORT`: VIIPER server port. Defaults to `3242`.
 * `INFRACT_VIIPER_PASSWORD`: VIIPER server password. Defaults to no password.
+
+## Nix / NixOS
+
+This repository exposes a Nix flake for Linux systems:
+
+* `packages.<system>.infract` / `packages.<system>.default`: wraps `dotnet run`.
+* `apps.<system>.infract` / `apps.<system>.default`: runs the same wrapper package with `nix run .#infract`.
+* `nixosModules.default`: enables a systemd service that runs the same wrapper and registers the bundled udev rules.
+
+Example one-off run:
+
+```sh
+nix run github:NaokoAF/InFract#infract
+```
+> [!NOTE]
+> Might not hide the controller, it's recommended to use the module instead.
+
+Example NixOS flake configuration:
+
+```nix
+{
+  inputs.infract.url = "github:NaokoAF/InFract";
+
+  outputs = { self, nixpkgs, infract, ... }: {
+    nixosConfigurations.my-host = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        infract.nixosModules.default
+        {
+          services.infract = {
+            enable = true;
+            environment = {
+              INFRACT_CONVERTER = "SINPUT";
+            };
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
