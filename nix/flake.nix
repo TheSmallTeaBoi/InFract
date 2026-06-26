@@ -90,31 +90,26 @@
               "uhid"
             ];
 
-            # Ensure the group exists (NixOS usually has 'input' by default,
-            # but we ensure it's available)
             users.groups.input = { };
 
-            users.users = lib.mkIf (cfg.user == "infract") {
-              infract = {
-                isSystemUser = true;
-                group = cfg.group;
-                extraGroups = [ "input" ];
-                home = "/var/lib/infract";
-                createHome = true;
-              };
+            users.users.${cfg.user} = {
+              isSystemUser = true;
+              group = cfg.group;
+              extraGroups = [ "input" ];
+              home = "/var/lib/infract";
+              createHome = true;
             };
 
             services.udev.extraRules = ''
-              # UHID and UINPUT access
-              KERNEL=="uhid", GROUP="input", MODE="0660"
-              KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+              # UHID access
+              KERNEL=="uhid", GROUP="input", MODE="0660", TAG+="uaccess"
 
               # GameSir HID access
               SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3537", GROUP="input", MODE="0660", TAG+="uaccess"
 
               # Hide GameSir Cyclone 2 (XInput, Wired and Wireless)
-              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="1053", ATTR{bInterfaceNumber}=="00", RUN+="${pkgs.bash}/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
-              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="100b", ATTR{bInterfaceNumber}=="00", RUN+="${pkgs.bash}/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
+              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="1053", ATTR{bInterfaceNumber}=="00", GROUP="input", RUN+="/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
+              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="100b", ATTR{bInterfaceNumber}=="00", GROUP="input", RUN+="/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
             '';
 
             systemd.services.infract = {
@@ -131,12 +126,9 @@
                 User = cfg.user;
                 Group = cfg.group;
 
-                # Permissions fixes:
-                # 1. Give the process the ability to act as a system admin (needed for some uinput ioctls)
                 AmbientCapabilities = [ "CAP_SYS_ADMIN" ];
                 CapabilityBoundingSet = [ "CAP_SYS_ADMIN" ];
 
-                # 2. Ensure device access is allowed in the sandbox
                 DeviceAllow = [
                   "/dev/uhid rw"
                   "/dev/uinput rw"
@@ -144,15 +136,12 @@
                   "char-input rw"
                 ];
 
-                # 3. State Management
                 StateDirectory = "infract";
                 WorkingDirectory = "/var/lib/infract";
 
-                # Security hardening (Allowing devices while restricting others)
                 ProtectSystem = "full";
                 ProtectHome = true;
                 PrivateVideo = true;
-                # Note: PrivateDevices must be false to access /dev/uinput and /dev/uhid
                 PrivateDevices = false;
               };
 
