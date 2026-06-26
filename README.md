@@ -34,7 +34,7 @@ it into a virtual **DualSense**, **DualSense Edge**, **DualShock 4** or **SInput
 Binaries can be downloaded from the [releases tab](https://github.com/NaokoAF/InFract/releases).
 
 InFract currently has no installation method. As long as the requirements are met, you can run the program as normal on Windows,
-or within your terminal on Linux. You can also set it up as a service that runs at start up.
+or within your terminal on Linux. You can also set it up as a service that runs at start up. Both of these are automated for NixOS users via [a flake](#nix--nixos).
 
 This may be made easier in the future.
 
@@ -58,3 +58,47 @@ Configuration is done through **environment variables** prefixed with `INFRACT_`
 * `INFRACT_VIIPER_ADDRESS`: VIIPER server address. Defaults to `localhost`.
 * `INFRACT_VIIPER_PORT`: VIIPER server port. Defaults to `3242`.
 * `INFRACT_VIIPER_PASSWORD`: VIIPER server password. Defaults to no password.
+
+## Nix / NixOS
+
+This repository exposes a Nix flake:
+
+* `packages.<system>.infract` / `packages.<system>.default`: builds and exposes the binary.
+* `nixosModules.default`: enables a systemd service that runs the same wrapper and registers the bundled udev rules.
+
+To just run it:
+
+```sh
+nix run github:NaokoAF/InFract?dir=nix#infract
+```
+> [!NOTE]
+> Might not hide the controller, it's recommended to use the module instead.
+
+Example NixOS flake configuration:
+
+```nix
+{
+  inputs = {
+    infract.url = "github:NaokoAF/InFract?dir=nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = { self, nixpkgs, infract, ... }: {
+    nixosConfigurations.my-host = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        infract.nixosModules.default
+        {
+          services.infract = {
+            enable = true;
+            environment = {
+              INFRACT_CONVERTER = "SINPUT";
+            };
+          };
+        }
+      ];
+    };
+  };
+}
+```
+

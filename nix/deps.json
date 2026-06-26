@@ -1,0 +1,17 @@
+[
+  {
+    "pname": "ppy.SDL3-CS",
+    "version": "2026.623.0",
+    "hash": "sha256-LMT2AVjP/HIC3a7PZDR4Vhlr6CCEhPu5ZF1eSYDIjeY="
+  },
+  {
+    "pname": "Tmds.LibC",
+    "version": "0.5.0",
+    "hash": "sha256-bDvDwxQFVJPBswX/4etOtgv/EQXCBXDflBTQ7RPR4Aw="
+  },
+  {
+    "pname": "Viiper.Client",
+    "version": "0.7.0",
+    "hash": "sha256-fVigbida8Uk5GtpGoKQLzt3ORJovxjntBt9vaAjD7KQ="
+  }
+]
