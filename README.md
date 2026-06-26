@@ -26,7 +26,8 @@ it into a virtual **DualSense**, **DualSense Edge**, **DualShock 4** or **SInput
 
 **Linux:**
 
-* User must have `hidraw` and `uhid` permissions. Copy `50-infract.rules` to `/etc/udev/rules.d/`.
+* User must have `hidraw` and `uhid` permissions. Copy `50-infract.rules` to `/etc/udev/rules.d/`, and add yourself to the `input`
+  group: `usermod -aG input $USER`.
 
 ## Installation
 
