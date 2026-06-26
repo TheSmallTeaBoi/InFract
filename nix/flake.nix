@@ -141,7 +141,6 @@
 
                 ProtectSystem = "full";
                 ProtectHome = true;
-                PrivateVideo = true;
                 PrivateDevices = false;
               };
 
