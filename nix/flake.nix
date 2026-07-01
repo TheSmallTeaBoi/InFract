@@ -54,6 +54,8 @@
           options.services.infract = {
             enable = lib.mkEnableOption "InFract controller refractor";
 
+            enableRules = lib.mkEnableOption "Enable udev rules for infract controllers";
+
             package = lib.mkOption {
               type = lib.types.package;
               default = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -100,16 +102,12 @@
               createHome = true;
             };
 
-            services.udev.extraRules = ''
+            services.udev.extraRules = lib.mkIf cfg.enableRules ''
               # UHID access
               KERNEL=="uhid", GROUP="input", MODE="0660", TAG+="uaccess"
 
               # GameSir HID access
               SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3537", GROUP="input", MODE="0660", TAG+="uaccess"
-
-              # Hide GameSir Cyclone 2 (XInput, Wired and Wireless)
-              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="1053", ATTR{bInterfaceNumber}=="00", GROUP="input", RUN+="/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
-              SUBSYSTEM=="usb", ATTRS{idVendor}=="3537", ATTRS{idProduct}=="100b", ATTR{bInterfaceNumber}=="00", GROUP="input", RUN+="/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/xpad/unbind'"
             '';
 
             systemd.services.infract = {
