@@ -133,8 +133,6 @@
 
                 DeviceAllow = [
                   "/dev/uhid rw"
-                  "/dev/uinput rw"
-                  "char-hidraw rw"
                   "char-input rw"
                   "char-usb_device rw"
 
